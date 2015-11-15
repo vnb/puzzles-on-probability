@@ -10,20 +10,16 @@ def retail_profit(min_D, max_D, Profit, Loss, iter):
 		count = 0
 		while count<=iter:
 			D = random.randint(min_D, max_D)
-			print(i,D)
 			if D>=i:
 				profit = Profit*i
 			else:
 				profit = Profit*D-Loss*(i-D)
 			sum_profit = sum_profit+profit
 			count = count+1
-			print(profit)
-			print("---")
 		profit_dict[i] = round(sum_profit/count, 3)
 	avg_prof = []
 	for key in profit_dict:
 		avg_prof.append(profit_dict[key])
-	print(profit_dict)
 	return max(profit_dict, key = profit_dict.get)
 
 print(retail_profit(80, 140, 0.60, 0.40, 1000))	
