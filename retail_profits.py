@@ -1,5 +1,11 @@
-#Supply - x, Demand - D. Profit = 0.6*x when x<=Demand, Profit = 0.6x -  0.4(x-D) when x>Demand. Calcuate the highest profit for a uniform distribution of demand between 80 to 140
 
+"""
+Supply - x, Demand - D. 
+D is a uniform distribution between [80, 140]
+Profit = 0.6 * x when x <= D, 
+       = 0.6 * x -  0.4 * (x - D) when x > D 
+Calcuate the supply to maximize the expected profit
+"""
 
 import random
 
