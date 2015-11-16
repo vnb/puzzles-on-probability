@@ -3,35 +3,58 @@ Supply - x, Demand - D.
 D is a uniform distribution between [80, 140]
 Profit = 0.6 * x when x <= D,
        = 0.6 * D -  0.4 * (x - D) when x > D
-Calcuate the supply to maximize the expected profit
+Calculate the supply to maximize the expected profit
 """
+
 import random
 import matplotlib.pyplot as plt
-sales = lambda x, d: 0.6 * x if x <= d else 0.6 * d - 0.4 * (x-d)
 
 
-def retail_profit(minimum_demand, maximum_demand, profit, loss, iter):
-        profit_dict = {}
-        for i in range(minimum_demand, maximum_demand+1):
-                sum_profit = 0
-                for j in range(0, iter+1):
-                        demand = random.randint(minimum_demand, maximum_demand+1)
-                        sum_profit += sales(i, demand)
-                profit_dict[i] = sum_profit*1.0/iter
+class Retailer(object):
 
-        x_data = []
-        y_data = []
-        for key in profit_dict:
-                x_data.append(key)
-                y_data.append(profit_dict[key])
-        fig = plt.figure(figsize=(10, 10))
-        ax = fig.add_subplot(1, 1, 1)
-        ax.scatter(x_data, y_data, color="blue", marker="o")
-        ax.set_title("Retail Profits")
-        ax.set_xlabel("Supply")
-        ax.set_ylabel("Profit")
-        fig.savefig("scatterplot.png")
-        return max(profit_dict, key=profit_dict.get)
-        return max(profit_dict, key=profit_dict.get)
-print(retail_profit(80, 140, 0.60, 0.40, 10000))
+    def __init__(self, unit_profit, unit_loss):
+        self.unit_profit = unit_profit
+        self.unit_loss= unit_loss
+
+    def plot_retail_profits(self, profits):
+
+        x_data = [key for key in profits]
+        y_data = [profits[key] for key in profits]
+
+        # begin plotting
+        fig = plt.figure(figsize = (10, 10))
+        axis = fig.add_subplot(1, 1, 1)
+        axis.scatter(x_data, y_data, color = "blue", marker = "o")
+        axis.set_title("Retail Profits")
+        axis.set_xlabel("Supply")
+        axis.set_ylabel("Profit")
+        fig.savefig("profits.png")
+
+    def profit_func(self, supply, demand):
+        if supply <= demand:
+            return self.unit_profit * supply
+        else:
+            return self.unit_profit * demand - self.unit_loss * (supply - demand)
+
+    def maximize_profit(self, min_demand, max_demand, iterations = 10000):
+
+        supply_range = range(min_demand, max_demand+1)
+        profits = {}
+        for i in supply_range:
+            sum_profit = 0
+            for j in range(0, iterations + 1):
+                demand = random.randint(min_demand, max_demand+1)
+                sum_profit +=  self.profit_func(i, demand)
+            profits[i] = (sum_profit*1.0)/iterations
+
+        self.plot_retail_profits(profits)
+
+        return max(profits, key = profits.get)
+
+
+if __name__ == "__main__":
+    r = Retailer(0.6, 0.4)
+    print r.maximize_profit(80, 140)
+
+
 
