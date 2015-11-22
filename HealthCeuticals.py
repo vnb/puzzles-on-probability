@@ -7,6 +7,7 @@ Historical Data
 
 import random
 import csv
+import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 file_name = 'HealthCeuticals.csv'
@@ -37,18 +38,19 @@ def hist_demand(historical_data):
 	demand_rand = []
 	min_value = 0
 	max_value = len(historical_data)
-	for i in range(1, max_value):
-		j = random.randint(0, max_value-1)
-		demand_rand.append(historical_data[j])
-	return demand_rand 
+	# for i in range(1, max_value):
+	# 	j = random.randint(0, max_value-1)
+	# 	demand_rand.append(historical_data[j])
+	x = random.randint(0,max_value-1)
+	return historical_data[x] 
 # #Need to write exception when historical_data is empty, duration is empty
 
-def avg_demand(rand_demand):
-	sum_demand = 0
-	for demand in rand_demand:
-		sum_demand += int(demand)
-	return int(sum_demand/len(rand_demand))
-random_demand = hist_demand(Historical_Data)
+# def avg_demand(rand_demand):
+# 	sum_demand = 0
+# 	for demand in rand_demand:
+# 		sum_demand += int(demand)
+# 	return int(sum_demand/len(rand_demand))
+# random_demand = hist_demand(Historical_Data)
 
 
 avg_cost = []
@@ -64,24 +66,77 @@ def calc_cost(supply, demand, unit_cost_expiration, unit_cost_restock):
 	else:
 		return unit_cost_restock*(demand-supply)
 
-for i in range(1, 10000):
-	amt_stocked.append(i)
-	demnd = avg_demand(hist_demand(Historical_Data))
-	usr_demand.append(demnd)
-	avg_cost.append(calc_cost(i,demnd,50,150))
+def find_percentile(parameter, ranks, n):
+	r = n/100*(ranks + 1)
+	a = 0
+	b = 0
+	if r - int(r) > 0:
+		a = parameter[int(r)]
+		b = parameter[int(r)+1]
+		return r*(a-b)+a
+	else:
+		return parameter(int(r))
 
-z = avg_cost
-y = amt_stocked
-x = usr_demand
+# for i in range(0, 10000):
+# 	x = random.randint(4000,8001)
+# 	amt_stocked.append(x)
+# 	demnd = hist_demand(Historical_Data)
+# 	usr_demand.append(demnd)
+# 	avg_cost.append(calc_cost(x,demnd,50,150))
 
-fig = plt.figure()
-ax = plt.axes(projection='3d')
+# z = avg_cost
+# y = amt_stocked
+# x = usr_demand
 
-ax.scatter(x, y, z)
-ax.set_title("Supply Demand Cost Plot")
-ax.set_xlabel("usr_demand")
-ax.set_ylabel("amt_stocked")
-ax.set_zlabel("avg_cost")
-plt.show()
+# fig = plt.figure()
+# ax = plt.axes(projection='3d')
+
+# ax.scatter(x, y, z)
+# ax.set_title("Supply Demand Cost Plot")
+# ax.set_xlabel("usr_demand")
+# ax.set_ylabel("amt_stocked")
+# ax.set_zlabel("avg_cost")
+# plt.show()
+ya = []
+za = []
+dyn_cost = []
+ra = []
+na = []
+for i in range(0,100):
+	x = random.randint(3000,10001)
+	ya.append(x)
+	j = 0
+	cost_sum = 0
+	dyn_cost = []
+	while j <= 1000:
+		it_cost = calc_cost(x,hist_demand(Historical_Data),50,150)
+		cost_sum += it_cost
+		j += 1
+		dyn_cost.append(it_cost)
+	print(dyn_cost)
+	#ra.append(find_percentile(dyn_cost, len(dyn_cost)-1, 95))
+	ra.append(np.percentile(dyn_cost, 95))
+	na.append(np.percentile(dyn_cost, 5))
+	za.append(cost_sum/j)
+
+#finding 95th percentile
+
+
+
+
+fig = plt.figure(figsize = (10, 10))
+axis = fig.add_subplot(1, 1, 1)
+axis.scatter(ya, za, color = "blue", marker = "o")
+axis.scatter(ya, ra, color = "red", marker = "o")
+axis.scatter(ya, na, color = "green", marker = "o")
+axis.set_ylim(0,1000000)
+axis.set_title("Stock vs Average Cost")
+axis.set_xlabel("Stock") 
+axis.set_ylabel("Average Cost($)")
+
+fig.savefig("Stock vs Average Cost.png")
+
+
+
 #ax.plot_surface(x, y, z, cmap=plt.cm.jet, rstride=100, cstride=100, linewidth=100)
 # fig.savefig('test')
