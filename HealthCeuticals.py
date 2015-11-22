@@ -68,14 +68,17 @@ def calc_cost(supply, demand, unit_cost_expiration, unit_cost_restock):
 
 def find_percentile(parameter, ranks, n): #function incorrect
 	r = n/100*(ranks + 1)
-	a = 0
-	b = 0
-	if r - int(r) > 0:
-		a = parameter[int(r)]
-		b = parameter[int(r)+1]
-		return r*(b-a)+a
+	# a = 0
+	# b = 0
+	# if r - int(r) > 0:
+	a = parameter[int(r)+1]
+	b = parameter[int(r)+2]
+	if b>a:
+		return (r-int(r))*(b-a)+a
 	else:
-		return parameter[int(r)]
+		return (r-int(r))*(a-b)+b
+	# else:
+	# 	return parameter[int(r)+1]
 
 # for i in range(0, 10000):
 # 	x = random.randint(4000,8001)
@@ -102,20 +105,21 @@ za = []
 dyn_cost = []
 ra = []
 na = []
-for i in range(4000, 8001, 10):
-	#x = random.randint(3000,10001)
+for i in range(4000, 8001, 50):
+	#x = random.randint(3000, 8001)
 	x = i
 	ya.append(x)
 	j = 0
 	cost_sum = 0
 	dyn_cost = []
-	while j <= 1000:
+	while j <= 10000:
 		it_cost = calc_cost(x,hist_demand(Historical_Data),50,150)
 		cost_sum += it_cost
 		j += 1
 		dyn_cost.append(it_cost)
-	#ra.append(find_percentile(dyn_cost, len(dyn_cost)-1, 95))
+	# ra.append(find_percentile(dyn_cost, len(dyn_cost)-1, 95))
 	ra.append(np.percentile(dyn_cost, 95))
+	# na.append(find_percentile(dyn_cost, len(dyn_cost)-1, 5))
 	na.append(np.percentile(dyn_cost, 5))
 	za.append(cost_sum/j)
 
