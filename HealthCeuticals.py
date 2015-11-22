@@ -71,15 +71,15 @@ def find_percentile(parameter, ranks, n): #function incorrect
 	# a = 0
 	# b = 0
 	# if r - int(r) > 0:
-	a = parameter[int(r)+1]
-	b = parameter[int(r)+2]
+	a = parameter[int(r)]
+	b = parameter[int(r)+1]
 	if b>a:
 		return (r-int(r))*(b-a)+a
 	else:
 		return (r-int(r))*(a-b)+b
 	# else:
 	# 	return parameter[int(r)+1]
-
+print(find_percentile([2, 3, 5, 9], 3, 50))
 # for i in range(0, 10000):
 # 	x = random.randint(4000,8001)
 # 	amt_stocked.append(x)
