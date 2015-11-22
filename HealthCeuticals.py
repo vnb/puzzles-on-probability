@@ -102,8 +102,9 @@ za = []
 dyn_cost = []
 ra = []
 na = []
-for i in range(0,100):
-	x = random.randint(3000,10001)
+for i in range(4000, 8001, 10):
+	#x = random.randint(3000,10001)
+	x = i
 	ya.append(x)
 	j = 0
 	cost_sum = 0
@@ -113,7 +114,6 @@ for i in range(0,100):
 		cost_sum += it_cost
 		j += 1
 		dyn_cost.append(it_cost)
-	print(dyn_cost)
 	#ra.append(find_percentile(dyn_cost, len(dyn_cost)-1, 95))
 	ra.append(np.percentile(dyn_cost, 95))
 	na.append(np.percentile(dyn_cost, 5))
@@ -126,13 +126,14 @@ for i in range(0,100):
 
 fig = plt.figure(figsize = (10, 10))
 axis = fig.add_subplot(1, 1, 1)
-axis.scatter(ya, za, color = "blue", marker = "o")
-axis.scatter(ya, ra, color = "red", marker = "o")
-axis.scatter(ya, na, color = "green", marker = "o")
+line1 = axis.scatter(ya, za, color = "orange", marker = "o", label = "Average Cost")
+line2 = axis.scatter(ya, ra, color = "magenta", marker = "o", label = "95th Percentile")
+line3 = axis.scatter(ya, na, color = "green", marker = "o", label = "5th Percentile")
 axis.set_ylim(0,1000000)
 axis.set_title("Stock vs Average Cost")
 axis.set_xlabel("Stock") 
 axis.set_ylabel("Average Cost($)")
+axis.legend([line1, line2, line3], ['Average Cost', "95th Percentile", "5th Percentile" ])
 
 fig.savefig("Stock vs Average Cost.png")
 
