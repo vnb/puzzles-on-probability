@@ -66,16 +66,16 @@ def calc_cost(supply, demand, unit_cost_expiration, unit_cost_restock):
 	else:
 		return unit_cost_restock*(demand-supply)
 
-def find_percentile(parameter, ranks, n):
+def find_percentile(parameter, ranks, n): #function incorrect
 	r = n/100*(ranks + 1)
 	a = 0
 	b = 0
 	if r - int(r) > 0:
 		a = parameter[int(r)]
 		b = parameter[int(r)+1]
-		return r*(a-b)+a
+		return r*(b-a)+a
 	else:
-		return parameter(int(r))
+		return parameter[int(r)]
 
 # for i in range(0, 10000):
 # 	x = random.randint(4000,8001)
@@ -118,10 +118,6 @@ for i in range(4000, 8001, 10):
 	ra.append(np.percentile(dyn_cost, 95))
 	na.append(np.percentile(dyn_cost, 5))
 	za.append(cost_sum/j)
-
-#finding 95th percentile
-
-
 
 
 fig = plt.figure(figsize = (10, 10))
