@@ -1,15 +1,12 @@
 """ HealthCeuticals sells an antibioics which has no seasonality in demand.Avg demand is 5,000 units. 
 Expiration cost - $50/unit, Air Frieght(in case of extra supply) - 150$. 
 When Demand = Stocked, operating cost is 0. 
-Historical Data		
-10000,6000,10000,8000,7000,5000,5000,5000,3000,2000,6000,5000,6000,3000,5000,4000,5000,4000,4000,3000,3000,3000,4000,3000,8000,3000,5000,2000,4000,5000,7000,6000,7000,8000,1000,5000
 """
 
 import random
 import csv
-import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+
 file_name = 'HealthCeuticals.csv'
 file_select = open(file_name)
 data = csv.reader(file_select)
@@ -22,7 +19,7 @@ for row in data:
 	if indicator == "yellow" and row[0] != "Month" and row[0] != "":
 		Historical_Data.append(int(row[1]))
 
-file_name = 'HealthCeuticals.csv'
+
 file_select = open(file_name)
 data = csv.reader(file_select)
 
@@ -33,111 +30,83 @@ for row in data:
 	if row[0] == "Air Freight":
 		air_freight = row[1]	
 
-def hist_demand(historical_data):
-	""" This function generates random demand values from historical Historical_Data """
-	demand_rand = []
-	min_value = 0
-	max_value = len(historical_data)
-	# for i in range(1, max_value):
-	# 	j = random.randint(0, max_value-1)
-	# 	demand_rand.append(historical_data[j])
-	x = random.randint(0,max_value-1)
-	return historical_data[x] 
-# #Need to write exception when historical_data is empty, duration is empty
 
-# def avg_demand(rand_demand):
-# 	sum_demand = 0
-# 	for demand in rand_demand:
-# 		sum_demand += int(demand)
-# 	return int(sum_demand/len(rand_demand))
-# random_demand = hist_demand(Historical_Data)
+class supply_stock(object):
+	""" Find optimal supply/stocks quantity in to keep cost low.
+	Monte Carlo method is used to generate random demand from historical data.   """
+	def __init__(self, unit_expiration_cost, unit_air_freight_cost, historical_data):
+		self.unit_expiration_cost = unit_expiration_cost
+		self.unit_air_freight_cost = unit_air_freight_cost
+		self.historical_data = historical_data
 
+	def hist_demand(self):
+		""" This function generates random demand values from historical Historical_Data """
+		max_value = len(historical_data)
+		x = random.randint(0,max_value-1)
+		return historical_data[x]
 
-avg_cost = []
-amt_stocked = []
-usr_demand = []
+	def calc_cost(self, supply, demand, unit_cost_expiration, unit_cost_restock):
+		if supply == demand:
+			return 0
+		elif supply >  demand:
+			return self.unit_expiration_cost*(supply-demand)
+		else:
+			return self.unit_air_freight_cost*(demand-supply)
 
+	def find_percentile(self, list_cost, percentile): 
+		r = percentile*0.01*(len(list_cost)+1)
+		list_cost.sort()
+		if r>int(r):
+			return (r-int(r))*(list_cost[int(r)]-list_cost[int(r)-1])+list_cost[int(r)-1]
+		else:
+			list_cost[int(r)-1]
 
-def calc_cost(supply, demand, unit_cost_expiration, unit_cost_restock):
-	if supply == demand:
-		return 0
-	elif supply >  demand:
-		return unit_cost_expiration*(supply-demand)
-	else:
-		return unit_cost_restock*(demand-supply)
+	def hist_demand(self, historical_data):
+		""" This function generates random demand values from historical Historical_Data """
+		max_value = len(historical_data)
+		x = random.randint(0,max_value-1)
+		return historical_data[x] 
 
-def find_percentile(parameter, ranks, n): #function incorrect
-	r = n/100*(ranks + 1)
-	# a = 0
-	# b = 0
-	# if r - int(r) > 0:
-	a = parameter[int(r)]
-	b = parameter[int(r)+1]
-	if b>a:
-		return (r-int(r))*(b-a)+a
-	else:
-		return (r-int(r))*(a-b)+b
-	# else:
-	# 	return parameter[int(r)+1]
-print(find_percentile([2, 3, 5, 9], 3, 50))
-# for i in range(0, 10000):
-# 	x = random.randint(4000,8001)
-# 	amt_stocked.append(x)
-# 	demnd = hist_demand(Historical_Data)
-# 	usr_demand.append(demnd)
-# 	avg_cost.append(calc_cost(x,demnd,50,150))
+	def plot_optimal_supply(self, average_cost, percentile_95, percentile_5, supply):
+		fig = plt.figure(figsize = (10, 10))
+		axis = fig.add_subplot(1, 1, 1)
+		line1 = axis.scatter(supply, average_cost, color = "orange", marker = "o", label = "Average Cost")
+		line2 = axis.scatter(supply, percentile_95, color = "magenta", marker = "o", label = "95th Percentile")
+		line3 = axis.scatter(supply, percentile_5, color = "green", marker = "o", label = "5th Percentile")
+		axis.set_ylim(0,1000000)
+		axis.set_title("Stock vs Average Cost")
+		axis.set_xlabel("Stock") 
+		axis.set_ylabel("Average Cost($)")
+		axis.legend([line1, line2, line3], ['Average Cost', "95th Percentile", "5th Percentile" ])
+		plt.show()
+		fig.savefig("Stock vs Average Cost.png")
 
-# z = avg_cost
-# y = amt_stocked
-# x = usr_demand
+	def minimize_cost(self, supply_minimum, supply_maximum, iterations = 10000 ):
+		supply = []
+		average_cost = []
+		dyn_cost = []
+		percentile_95 = []
+		percentile_5 = []
+		for i in range(supply_minimum, supply_maximum+1, 50):
+			x = i
+			supply.append(x)
+			j = 0
+			cost_sum = 0
+			dyn_cost = []
+			while j <= iterations:
+				it_cost = self.calc_cost(x,self.hist_demand(self.historical_data),self.unit_expiration_cost, self.unit_air_freight_cost)
+				cost_sum += it_cost
+				j += 1
+				dyn_cost.append(it_cost)
+			percentile_95.append(self.find_percentile(dyn_cost,95))
+			percentile_5.append(self.find_percentile(dyn_cost, 5))
+			average_cost.append(cost_sum/j)
+		self.plot_optimal_supply(average_cost, percentile_95, percentile_5, supply)
 
-# fig = plt.figure()
-# ax = plt.axes(projection='3d')
-
-# ax.scatter(x, y, z)
-# ax.set_title("Supply Demand Cost Plot")
-# ax.set_xlabel("usr_demand")
-# ax.set_ylabel("amt_stocked")
-# ax.set_zlabel("avg_cost")
-# plt.show()
-ya = []
-za = []
-dyn_cost = []
-ra = []
-na = []
-for i in range(4000, 8001, 50):
-	#x = random.randint(3000, 8001)
-	x = i
-	ya.append(x)
-	j = 0
-	cost_sum = 0
-	dyn_cost = []
-	while j <= 10000:
-		it_cost = calc_cost(x,hist_demand(Historical_Data),50,150)
-		cost_sum += it_cost
-		j += 1
-		dyn_cost.append(it_cost)
-	# ra.append(find_percentile(dyn_cost, len(dyn_cost)-1, 95))
-	ra.append(np.percentile(dyn_cost, 95))
-	# na.append(find_percentile(dyn_cost, len(dyn_cost)-1, 5))
-	na.append(np.percentile(dyn_cost, 5))
-	za.append(cost_sum/j)
-
-
-fig = plt.figure(figsize = (10, 10))
-axis = fig.add_subplot(1, 1, 1)
-line1 = axis.scatter(ya, za, color = "orange", marker = "o", label = "Average Cost")
-line2 = axis.scatter(ya, ra, color = "magenta", marker = "o", label = "95th Percentile")
-line3 = axis.scatter(ya, na, color = "green", marker = "o", label = "5th Percentile")
-axis.set_ylim(0,1000000)
-axis.set_title("Stock vs Average Cost")
-axis.set_xlabel("Stock") 
-axis.set_ylabel("Average Cost($)")
-axis.legend([line1, line2, line3], ['Average Cost', "95th Percentile", "5th Percentile" ])
-
-fig.savefig("Stock vs Average Cost.png")
+if __name__ == "__main__":
+    r = supply_stock(50, 150, Historical_Data)
+    print(r.minimize_cost(4000, 8000, iterations=10000))
 
 
 
-#ax.plot_surface(x, y, z, cmap=plt.cm.jet, rstride=100, cstride=100, linewidth=100)
-# fig.savefig('test')
+
