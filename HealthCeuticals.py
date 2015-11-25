@@ -1,15 +1,12 @@
 """ HealthCeuticals sells an antibioics which has no seasonality in demand.Avg demand is 5,000 units. 
 Expiration cost - $50/unit, Air Frieght(in case of extra supply) - 150$. 
 When Demand = Stocked, operating cost is 0. 
-Historical Data		
-10000,6000,10000,8000,7000,5000,5000,5000,3000,2000,6000,5000,6000,3000,5000,4000,5000,4000,4000,3000,3000,3000,4000,3000,8000,3000,5000,2000,4000,5000,7000,6000,7000,8000,1000,5000
 """
 
 import random
 import csv
-import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+
 file_name = 'HealthCeuticals.csv'
 file_select = open(file_name)
 data = csv.reader(file_select)
@@ -22,7 +19,7 @@ for row in data:
 	if indicator == "yellow" and row[0] != "Month" and row[0] != "":
 		Historical_Data.append(int(row[1]))
 
-file_name = 'HealthCeuticals.csv'
+
 file_select = open(file_name)
 data = csv.reader(file_select)
 
@@ -35,23 +32,9 @@ for row in data:
 
 def hist_demand(historical_data):
 	""" This function generates random demand values from historical Historical_Data """
-	demand_rand = []
-	min_value = 0
 	max_value = len(historical_data)
-	# for i in range(1, max_value):
-	# 	j = random.randint(0, max_value-1)
-	# 	demand_rand.append(historical_data[j])
 	x = random.randint(0,max_value-1)
 	return historical_data[x] 
-# #Need to write exception when historical_data is empty, duration is empty
-
-# def avg_demand(rand_demand):
-# 	sum_demand = 0
-# 	for demand in rand_demand:
-# 		sum_demand += int(demand)
-# 	return int(sum_demand/len(rand_demand))
-# random_demand = hist_demand(Historical_Data)
-
 
 avg_cost = []
 amt_stocked = []
@@ -66,47 +49,26 @@ def calc_cost(supply, demand, unit_cost_expiration, unit_cost_restock):
 	else:
 		return unit_cost_restock*(demand-supply)
 
-def find_percentile(parameter, ranks, n): #function incorrect
-	r = n/100*(ranks + 1)
-	# a = 0
-	# b = 0
-	# if r - int(r) > 0:
-	a = parameter[int(r)]
-	b = parameter[int(r)+1]
-	if b>a:
-		return (r-int(r))*(b-a)+a
-	else:
-		return (r-int(r))*(a-b)+b
-	# else:
-	# 	return parameter[int(r)+1]
-print(find_percentile([2, 3, 5, 9], 3, 50))
-# for i in range(0, 10000):
-# 	x = random.randint(4000,8001)
-# 	amt_stocked.append(x)
-# 	demnd = hist_demand(Historical_Data)
-# 	usr_demand.append(demnd)
-# 	avg_cost.append(calc_cost(x,demnd,50,150))
+def find_percentile(parameter, p): 
+	r = p*0.01*(len(parameter)+1)
+	parameter.sort()
+        if r>int(r):
+            return (r-int(r))*(parameter[int(r)]-parameter[int(r)-1])+parameter[int(r)-1]
+        else:
+            return parameter[int(r)-1]
 
-# z = avg_cost
-# y = amt_stocked
-# x = usr_demand
-
-# fig = plt.figure()
-# ax = plt.axes(projection='3d')
-
-# ax.scatter(x, y, z)
-# ax.set_title("Supply Demand Cost Plot")
-# ax.set_xlabel("usr_demand")
-# ax.set_ylabel("amt_stocked")
-# ax.set_zlabel("avg_cost")
-# plt.show()
+for i in range(0, 10000):
+ 	x = random.randint(4000,8001)
+ 	amt_stocked.append(x)
+ 	demnd = hist_demand(Historical_Data)
+ 	usr_demand.append(demnd)
+ 	avg_cost.append(calc_cost(x,demnd,50,150))
 ya = []
 za = []
 dyn_cost = []
 ra = []
 na = []
 for i in range(4000, 8001, 50):
-	#x = random.randint(3000, 8001)
 	x = i
 	ya.append(x)
 	j = 0
@@ -117,10 +79,8 @@ for i in range(4000, 8001, 50):
 		cost_sum += it_cost
 		j += 1
 		dyn_cost.append(it_cost)
-	# ra.append(find_percentile(dyn_cost, len(dyn_cost)-1, 95))
-	ra.append(np.percentile(dyn_cost, 95))
-	# na.append(find_percentile(dyn_cost, len(dyn_cost)-1, 5))
-	na.append(np.percentile(dyn_cost, 5))
+	ra.append(find_percentile(dyn_cost,95))
+	na.append(find_percentile(dyn_cost, 5))
 	za.append(cost_sum/j)
 
 
@@ -134,10 +94,5 @@ axis.set_title("Stock vs Average Cost")
 axis.set_xlabel("Stock") 
 axis.set_ylabel("Average Cost($)")
 axis.legend([line1, line2, line3], ['Average Cost', "95th Percentile", "5th Percentile" ])
-
+plt.show()
 fig.savefig("Stock vs Average Cost.png")
-
-
-
-#ax.plot_surface(x, y, z, cmap=plt.cm.jet, rstride=100, cstride=100, linewidth=100)
-# fig.savefig('test')
